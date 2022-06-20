@@ -19,7 +19,7 @@ tmle3_Spec_ADSM <- R6::R6Class(
         g_adapt = g_adapt, ...
       )
     },
-    make_params = function(tmle_task, likelihood) {
+    make_params = function(tmle_task, likelihood, initial_likelihood) {
       g_treat <-self$options$g_treat
       g_adapt <- self$options$g_adapt
       if (!(is.vector(g_treat) &
@@ -40,7 +40,7 @@ tmle3_Spec_ADSM <- R6::R6Class(
       }
       treatment <- define_lf(LF_static, "A", value = treatment_value)
       control <- define_lf(LF_static, "A", value = control_value)
-      adsm <- Param_ADSM$new(likelihood, treatment, control, g_treat, g_adapt)
+      adsm <- Param_ADSM$new(likelihood, treatment, control, g_treat, g_adapt, initial_likelihood)
       tmle_params <- list(adsm)
       return(tmle_params)
     },

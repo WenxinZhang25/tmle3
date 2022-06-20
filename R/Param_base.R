@@ -20,9 +20,11 @@ Param_base <- R6Class(
   portable = TRUE,
   class = TRUE,
   public = list(
-    initialize = function(observed_likelihood, ..., outcome_node = "Y") {
+    initialize = function(observed_likelihood, ..., initial_likelihood = NULL, outcome_node = "Y") {
       private$.observed_likelihood <- observed_likelihood
       private$.outcome_node <- outcome_node
+      # Use initial_likelihood if it is given
+      private$.initial_likelihood <- initial_likelihood
 
       if (!is.null(observed_likelihood$censoring_nodes[[outcome_node]])) {
         if (!self$supports_outcome_censoring) {
@@ -59,12 +61,14 @@ Param_base <- R6Class(
     type = function() {
       return(private$.type)
     },
-
     observed_likelihood = function() {
       return(private$.observed_likelihood)
     },
     outcome_node = function() {
       return(private$.outcome_node)
+    },
+    initial_likelihood = function() {
+      return(private$.initial_likelihood)
     },
     supports_outcome_censoring = function() {
       return(private$.supports_outcome_censoring)
@@ -77,6 +81,7 @@ Param_base <- R6Class(
     .type = "undefined",
     .observed_likelihood = NULL,
     .outcome_node = NULL,
+    .initial_likelihood = NULL,
     .targeted = TRUE,
     .supports_outcome_censoring = FALSE
   )

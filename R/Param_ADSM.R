@@ -55,8 +55,8 @@ Param_ADSM <- R6Class(
   class = TRUE,
   inherit = Param_base,
   public = list(
-    initialize = function(observed_likelihood, intervention_list_treatment, intervention_list_control, g_treat, g_adapt, outcome_node = "Y") {
-      super$initialize(observed_likelihood, list(), outcome_node)
+    initialize = function(observed_likelihood, intervention_list_treatment, intervention_list_control, g_treat, g_adapt, initial_likelihood, outcome_node = "Y") {
+      super$initialize(observed_likelihood, list(), initial_likelihood = initial_likelihood, outcome_node = outcome_node)
       if (!is.null(observed_likelihood$censoring_nodes[[outcome_node]])) {
         # add delta_Y=0 to intervention lists
         outcome_censoring_node <- observed_likelihood$censoring_nodes[[outcome_node]]
@@ -134,7 +134,16 @@ Param_ADSM <- R6Class(
       psi <- mean(EY1 * self$g_adapt + EY0 * (1 - self$g_adapt))
 
       # Need to double check
-      IC <- HA * (Y - EY) + (EY1 * self$g_adapt + EY0 * (1 - self$g_adapt)) - psi
+
+      ## Use the IC based on Q0 instead of Q* to estimate Var(phi)
+      if (identical(self$observed_likelihood, self$initial_likelihood)){
+        IC <- HA * (Y - EY) + (EY1 * self$g_adapt + EY0 * (1 - self$g_adapt)) - psi
+      } else {
+        EY_Q0 <- self$initial_likelihood$get_likelihood(tmle_task, self$outcome_node, fold_number)
+        EY1_Q0 <- self$initial_likelihood$get_likelihood(cf_task_treatment, self$outcome_node, fold_number)
+        EY0_Q0 <- self$initial_likelihood$get_likelihood(cf_task_control, self$outcome_node, fold_number)
+        IC <- HA * (Y - EY) + (EY1_Q0 * self$g_adapt + EY0_Q0 * (1 - self$g_adapt)) - psi
+      }
 
       result <- list(psi = psi, IC = IC)
       return(result)

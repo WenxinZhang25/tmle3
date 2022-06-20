@@ -60,7 +60,7 @@ initial_likelihood <- tmle_spec$make_initial_likelihood(
 targeted_likelihood <- Targeted_Likelihood$new(initial_likelihood)
 
 ## Define tmle param
-tmle_params <- tmle_spec$make_params(tmle_task, targeted_likelihood)
+tmle_params <- tmle_spec$make_params(tmle_task, targeted_likelihood, initial_likelihood = initial_likelihood)
 
 ## Run TMLE
 tmle_fit <- fit_tmle3(
