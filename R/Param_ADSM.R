@@ -137,12 +137,14 @@ Param_ADSM <- R6Class(
 
       ## Use the IC based on Q0 instead of Q* to estimate Var(phi)
       if (identical(self$observed_likelihood, self$initial_likelihood)){
-        IC <- HA * (Y - EY) + (EY1 * self$g_adapt + EY0 * (1 - self$g_adapt)) - psi
+        # IC <- HA * (Y - EY) + (EY1 * self$g_adapt + EY0 * (1 - self$g_adapt)) - psi
+        IC <- HA * (Y - EY)
       } else {
         EY_Q0 <- self$initial_likelihood$get_likelihood(tmle_task, self$outcome_node, fold_number)
-        EY1_Q0 <- self$initial_likelihood$get_likelihood(cf_task_treatment, self$outcome_node, fold_number)
-        EY0_Q0 <- self$initial_likelihood$get_likelihood(cf_task_control, self$outcome_node, fold_number)
-        IC <- HA * (Y - EY) + (EY1_Q0 * self$g_adapt + EY0_Q0 * (1 - self$g_adapt)) - psi
+        # EY1_Q0 <- self$initial_likelihood$get_likelihood(cf_task_treatment, self$outcome_node, fold_number)
+        # EY0_Q0 <- self$initial_likelihood$get_likelihood(cf_task_control, self$outcome_node, fold_number)
+        # IC <- HA * (Y - EY) + (EY1_Q0 * self$g_adapt + EY0_Q0 * (1 - self$g_adapt)) - psi
+        IC <- HA * (Y - EY_Q0)
       }
 
       result <- list(psi = psi, IC = IC)
