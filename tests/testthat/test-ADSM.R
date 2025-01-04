@@ -10,7 +10,7 @@ library(future)
 set.seed(1234)
 
 ## simulate simple data for TML for adaptive design
-n_obs <- 1000 # number of observations
+n_obs <- 5000 # number of observations
 
 ## baseline covariates -- simple, binary
 W <- rnorm(n_obs, 0, 1)
@@ -19,8 +19,9 @@ W <- rnorm(n_obs, 0, 1)
 g_treatment <- rep(0.5, n_obs)
 A <- sapply(g_treatment, rbinom, n = 1, size = 1)
 
-## create outcome as a linear function of A, W + white noise
-Y <- A + W + rnorm(n_obs, mean = 0, sd = 1)
+EY1 <- W + W^2
+EY0 <- W
+Y <- A*EY1 + (1-A)*EY0 + rnorm(n_obs, mean = 0, sd = 1)
 
 ## organize data and nodes for tmle3
 data <- data.table(W, A, Y)
@@ -70,7 +71,7 @@ tmle_fit <- fit_tmle3(
 tmle_fit
 
 ## Truth
-truth_1 <- mean(g_adapt_1 * (1 + W) + (1 - g_adapt_1) * W)
+truth_1 <- mean(g_adapt_1 * EY1 + (1 - g_adapt_1) * EY0)
 
 test_that("TMLE CI includes truth", {
   expect_lte(abs(truth_1 - tmle_fit$summary$tmle_est), tmle_fit$summary$se * 1.96)
@@ -100,10 +101,10 @@ tmle_fit_2 <- fit_tmle3(
   targeted_likelihood_2$updater
 )
 
-truth_2 <- mean(g_adapt_2 * (1 + W) + (1 - g_adapt_2) * W)
+truth_2 <- mean(g_adapt_2 * EY1 + (1 - g_adapt_2) * EY0)
 
 test_that("TMLE CI includes truth", {
-  expect_lte(abs(truth_2 - tmle_fit_2$summary$tmle_est), tmle_fit$summary$se * 1.96)
+  expect_lte(abs(truth_2 - tmle_fit_2$summary$tmle_est), tmle_fit_2$summary$se * 1.96)
 })
 
 
@@ -126,5 +127,34 @@ whTrt1 <- which(tmle_fit_tsm$tmle_param_names == "E[Y_{A=1}]")
 
 test_that("TMLE Estimate almost equals TSM(A = 1)", {
   expect_lte(abs(tmle_fit_tsm$summary$tmle_est[whTrt1] - tmle_fit_2$summary$tmle_est), 0.01)
+})
+
+# Test 4
+## Compare ADSM under ODTR: I(CATE > 0)
+g_adapt_4 <- as.numeric(I(EY1 > EY0))
+
+tmle_spec_4 <- tmle_ADSM(
+  treatment_level = 1,
+  control_level = 0,
+  g_treat = g_treatment,
+  g_adapt = g_adapt_4
+)
+
+tmle_task_4 <- tmle_spec_4$make_tmle_task(data, node_list)
+initial_likelihood_4 <- tmle_spec_4$make_initial_likelihood(
+  tmle_task_4,
+  learner_list
+)
+targeted_likelihood_4 <- Targeted_Likelihood$new(initial_likelihood_4)
+tmle_params_4 <- tmle_spec_4$make_params(tmle_task_4, targeted_likelihood_4)
+tmle_fit_4 <- fit_tmle3(
+  tmle_task_4, targeted_likelihood_4, tmle_params_4,
+  targeted_likelihood_4$updater
+)
+
+truth_4 <- mean(g_adapt_4 * EY1 + (1 - g_adapt_4) * EY0)
+
+test_that("TMLE CI includes truth", {
+  expect_lte(abs(truth_4 - tmle_fit_4$summary$tmle_est), tmle_fit_4$summary$se * 1.96)
 })
 
