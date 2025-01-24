@@ -97,6 +97,7 @@ If NULL, the \code{tmle_task} used to train the \code{observed likelihood will b
 
 \seealso{
 Other Parameters: 
+\code{\link{Param_ADATE}},
 \code{\link{Param_ADSM}},
 \code{\link{Param_ATC}},
 \code{\link{Param_ATE}},
@@ -105,6 +106,8 @@ Other Parameters:
 \code{\link{Param_TSM}},
 \code{\link{Param_base}},
 \code{\link{Param_delta}},
+\code{\link{Param_marginal_ADATE}},
+\code{\link{Param_marginal_ADSM}},
 \code{\link{Param_mean}},
 \code{\link{Param_stratified}},
 \code{\link{Param_survival}},
